@@ -1,49 +1,77 @@
+# Importing Libraries
 import cv2
+from mediapipe.tasks import python
 import mediapipe as mp
-import csv
+from mediapipe.tasks.python import vision
 import os
+import csv
 
-mp_hands = mp.solutions.hands
-hands = mp_hands.Hands(
-    static_image_mode=True,  # True for images, not video
-    max_num_hands=1,
-    min_detection_confidence=0.5  # Lower threshold for black background
+# Load a single image & Detect hand landmarks
+base_options = python.BaseOptions(model_asset_path='hand_landmarker.task')
+options = vision.HandLandmarkerOptions(
+    base_options = base_options,
+    num_hands = 1
 )
 
-dataset_path = "path/to/kaggle/dataset"  # folder with A, B, C... subfolders
-output_csv = "kaggle_landmarks.csv"
+detector = vision.HandLandmarker.create_from_options(options)
 
-with open(output_csv, 'w', newline='') as f:
+image_path = r'Indian/1/0.jpg'
+
+mp_image = mp.Image.create_from_file(image_path)
+result = detector.detect(mp_image)
+
+print("Hands detected: ", len(result.hand_landmarks))
+
+landmarks = result.hand_landmarks[0]
+
+for i, landmark in enumerate(landmarks):
+    print(f"Landmark {i}: x={landmark.x:.4f}, y={landmark.y:.4f}, z={landmark.z:.4f}")
+
+output_file = 'data.csv'
+
+header = ["label"]
+for i in range(21):
+    header += [f"x{i}", f"y{i}", f"z{i}"]
+
+with open(output_file, mode='w', newline='') as f:
     writer = csv.writer(f)
-    header = ['label'] + [f'{axis}{i}' for i in range(21) for axis in ['x','y','z']]
     writer.writerow(header)
 
-    for sign_folder in os.listdir(dataset_path):
-        sign_path = os.path.join(dataset_path, sign_folder)
-        if not os.path.isdir(sign_path):
+print("CSV created with header")
+print(header)
+print("Total Columns: ", len(header))
+
+dataset_path = "Indian"
+skipped = 0
+processed = 0
+
+with open(output_file, mode='a', newline='') as f:
+    writer = csv.writer(f)
+    for label in os.listdir(dataset_path):
+        label_folder = os.path.join(dataset_path, label)
+        if not os.path.isdir(label_folder):
             continue
 
-        success = 0
-        fail = 0
+        for image in os.listdir(label_folder):
+            img_path = os.path.join(label_folder, image)
 
-        for img_file in os.listdir(sign_path):
-            img_path = os.path.join(sign_path, img_file)
-            image = cv2.imread(img_path)
-            if image is None:
-                continue
+            try:
+                mp_image = mp.Image.create_from_file(img_path)
+                result = detector.detect(mp_image)
 
-            rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-            result = hands.process(rgb)
-
-            if result.multi_hand_landmarks:
-                row = [sign_folder]
-                for lm in result.multi_hand_landmarks[0].landmark:
-                    row.extend([lm.x, lm.y, lm.z])
+                if len(result.hand_landmarks) == 0:
+                    skipped += 1
+                    continue
+                landmarks = result.hand_landmarks[0]
+                row = [label]
+                for landmark in landmarks:
+                    row += [round(landmark.x, 4), round(landmark.y, 4), round(landmark.z, 4)]
                 writer.writerow(row)
-                success += 1
-            else:
-                fail += 1  # MediaPipe couldn't detect hand
+                processed += 1
 
-        print(f"{sign_folder}: {success} success, {fail} failed")
+            except Exception as e:
+                print(f"Error on {img_path}: {e}")
+                skipped += 1
 
-print(f"Done. Saved to {output_csv}")
+
+print(f"Done. Processed {processed} and skipped {skipped}")
