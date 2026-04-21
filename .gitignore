@@ -205,3 +205,21 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+# Model files
+*.pkl
+*.task
+
+# Notebook checkpoints
+.ipynb_checkpoints/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Data files
+*.csv
+
+# Environment
+venv/
+.env
