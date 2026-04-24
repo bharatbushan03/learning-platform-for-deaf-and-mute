@@ -145,7 +145,7 @@ def predict_sign(frame: np.ndarray | None, state: PredictionState | None) -> tup
 
     cv2.putText(frame, f"Sign: {prediction}", (12, 35), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 255, 0), 2)
     cv2.putText(frame, f"Confidence: {confidence * 100:.1f}%", (12, 65), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 255), 2)
-    cv2.putText(frame, f"Word: {word_text}", (12, 95), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 0), 2)
+    cv2.putText(frame, f"Buffered Word: {word_text}", (12, 95), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 0), 2)
 
     return frame, prediction, f"{confidence * 100:.1f}%", word_text, hands_count, state
 
