@@ -19,8 +19,12 @@ ENCODER_FILE = MODELS_DIR / "label-encoder.pkl"
 LANDMARKER_FILE = MODELS_DIR / "hand_landmarker.task"
 
 MISSING_HAND = [-1.0] * 63
+# Frames a sign must remain stable before adding it to the word buffer.
 STABLE_THRESHOLD = 15
+# Minimum classifier confidence to consider a prediction valid.
 CONFIDENCE_THRESHOLD = 0.80
+# Keep buffered output short to avoid overflowing the UI.
+MAX_DISPLAY_WORDS = 20
 HAND_CONNECTIONS = [
     (0, 1), (1, 2), (2, 3), (3, 4),
     (0, 5), (5, 6), (6, 7), (7, 8),
@@ -130,7 +134,7 @@ def predict_sign(frame: np.ndarray | None, state: dict[str, Any]) -> tuple[np.nd
         state["stable_count"] = 0
         state["last_prediction"] = ""
 
-    word_text = "".join(state["word_buffer"][-20:])
+    word_text = "".join(state["word_buffer"][-MAX_DISPLAY_WORDS:])
     hands_count = len(detection_result.hand_landmarks) if detection_result.hand_landmarks else 0
 
     cv2.putText(frame, f"Sign: {prediction}", (12, 35), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 255, 0), 2)

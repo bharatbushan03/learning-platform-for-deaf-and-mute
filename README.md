@@ -16,5 +16,5 @@ Then open the local Gradio URL in your browser.
 
 ## Existing scripts
 
-- `python demo.py` → webcam hand landmark tracking demo (landmark visualization only)
-- `python isl_realtime_prediction.py` → OpenCV real-time ISL prediction with buffering and confidence
+- `python demo.py` → main OpenCV real-time prediction flow
+- `python isl_realtime_prediction.py` → standalone webcam/hand-tracking entry point
