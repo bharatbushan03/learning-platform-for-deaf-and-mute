@@ -19,7 +19,7 @@ ENCODER_FILE = MODELS_DIR / "label-encoder.pkl"
 LANDMARKER_FILE = MODELS_DIR / "hand_landmarker.task"
 
 MISSING_HAND = [-1.0] * 63
-STABLE_THRESHOLD = 8
+STABLE_THRESHOLD = 15
 CONFIDENCE_THRESHOLD = 0.80
 HAND_CONNECTIONS = [
     (0, 1), (1, 2), (2, 3), (3, 4),
