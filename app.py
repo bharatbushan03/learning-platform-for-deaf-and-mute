@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any
+from typing import TypedDict
 
 import cv2
 import gradio as gr
@@ -53,11 +53,17 @@ detector_options = vision.HandLandmarkerOptions(
 detector = vision.HandLandmarker.create_from_options(detector_options)
 
 
-def _default_state() -> dict[str, Any]:
+class PredictionState(TypedDict):
+    word_buffer: list[str]
+    last_prediction: str
+    stable_count: int
+
+
+def _default_state() -> PredictionState:
     return {"word_buffer": [], "last_prediction": "", "stable_count": 0}
 
 
-def _draw_hand(frame: np.ndarray, hand_landmarks: list[Any], handedness: str) -> None:
+def _draw_hand(frame: np.ndarray, hand_landmarks: list, handedness: str) -> None:
     h, w, _ = frame.shape
     points: list[tuple[int, int]] = []
     point_color = (255, 0, 0) if handedness == "Left" else (0, 0, 255)
@@ -83,7 +89,7 @@ def _draw_hand(frame: np.ndarray, hand_landmarks: list[Any], handedness: str) ->
     )
 
 
-def predict_sign(frame: np.ndarray | None, state: dict[str, Any]) -> tuple[np.ndarray | None, str, str, str, int, dict[str, Any]]:
+def predict_sign(frame: np.ndarray | None, state: PredictionState | None) -> tuple[np.ndarray | None, str, str, str, int, PredictionState]:
     if frame is None:
         return None, "No input", "0.0%", "", 0, state
 
@@ -134,7 +140,7 @@ def predict_sign(frame: np.ndarray | None, state: dict[str, Any]) -> tuple[np.nd
         state["stable_count"] = 0
         state["last_prediction"] = ""
 
-    word_text = "".join(state["word_buffer"][-MAX_DISPLAY_WORDS:])
+    word_text = " ".join(state["word_buffer"][-MAX_DISPLAY_WORDS:])
     hands_count = len(detection_result.hand_landmarks) if detection_result.hand_landmarks else 0
 
     cv2.putText(frame, f"Sign: {prediction}", (12, 35), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 255, 0), 2)
@@ -144,12 +150,8 @@ def predict_sign(frame: np.ndarray | None, state: dict[str, Any]) -> tuple[np.nd
     return frame, prediction, f"{confidence * 100:.1f}%", word_text, hands_count, state
 
 
-def clear_buffer(state: dict[str, Any]) -> tuple[str, dict[str, Any]]:
-    state = _default_state() if state is None else state
-    state["word_buffer"] = []
-    state["last_prediction"] = ""
-    state["stable_count"] = 0
-    return "", state
+def clear_buffer(_: PredictionState | None) -> tuple[str, PredictionState]:
+    return "", _default_state()
 
 
 with gr.Blocks(title="ISL Learning Platform UI") as app:
