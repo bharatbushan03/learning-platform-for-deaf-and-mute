@@ -2,17 +2,36 @@
 
 Real-time Indian Sign Language (ISL) recognition project for deaf and mute communication support.
 
-## UI (Gradio)
+## React UI
 
-A web UI is available via `app.py` for image/webcam-based sign prediction.
+The production frontend lives in `frontend/` as a Vite + React application.
 
-### Run
+### Run the frontend
 
 ```bash
-python app.py
+cd frontend
+npm install
+npm run dev
 ```
 
-Then open the local Gradio URL in your browser.
+### Build for production
+
+```bash
+cd frontend
+npm run build
+```
+
+The FastAPI backend serves the built app from `frontend/dist/` when present.
+
+## Backend
+
+```bash
+uvicorn backend.main:app --reload
+```
+
+## Real-Time Prediction
+
+The project provides standalone scripts for real-time ISL recognition via webcam.
 
 ## Existing scripts
 
